@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  INSPECTOR
+  NGO_HEAD
+}
+
+model User {
+  id           String          @id @default(uuid())
+  name         String
+  role         Role
+  email        String          @unique
+  password     String
+  institutes   Institute[]     @relation("InstituteIncharge")
+  inspections  InspectionLog[]
+}
+
+model Institute {
+  id               String          @id @default(uuid())
+  name             String
+  claimed_capacity Int
+  lat              Float
+  lng              Float
+  inchargeId       String
+  incharge         User            @relation("InstituteIncharge", fields: [inchargeId], references: [id])
+  logs             InspectionLog[]
+}
+
+model InspectionLog {
+  id                 String    @id @default(uuid())
+  instituteId        String
+  inspectorId        String
+  status             String
+  timestamp          DateTime  @default(now())
+  recorded_headcount Int
+  ai_flagged_proxy   Boolean
+  photo_url          String
+  institute          Institute @relation(fields: [instituteId], references: [id])
+  inspector          User      @relation(fields: [inspectorId], references: [id])
+}
